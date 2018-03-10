@@ -455,9 +455,8 @@ class SurvivalGame(object):
 
     def __gameStart(self):
         turn = 0
-        numOfAlivePlayer = self.__n
 
-        while numOfAlivePlayer > 1:
+        while True:
             if turn == 0:
                 for teleportObject in self.__teleportObjects:
                     teleportObject.teleport()  # duck typing
@@ -474,10 +473,20 @@ class SurvivalGame(object):
 
             turn = (turn + 1) % self.__n
 
-            numOfAlivePlayer = 0
-            for i in range(self.__n):
-                if self.__teleportObjects[i].health > 0:
-                    numOfAlivePlayer += 1
+            numOfAliveHumans = 0
+            numOfAliveCharks = 0
+
+            for teleportObject in self.__teleportObjects:
+                if isinstance(teleportObject, Human):
+                    if teleportObject.health > 0:
+                        numOfAliveHumans += 1
+
+                if isinstance(teleportObject, Chark):
+                    if teleportObject.health > 0:
+                        numOfAliveCharks += 1
+
+            if numOfAliveHumans == 0 or numOfAliveCharks == 0:
+                break
 
         print('Game over.')
         self.printBoard()
