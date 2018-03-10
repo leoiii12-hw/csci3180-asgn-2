@@ -462,7 +462,7 @@ class SurvivalGame(object):
                 for teleportObject in self.__teleportObjects:
                     teleportObject.teleport()  # duck typing
 
-                print('Everyhing gets teleported..')
+                print('Everything gets teleported..')
 
             self.printBoard()
 
