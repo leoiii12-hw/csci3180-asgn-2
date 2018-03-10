@@ -6,9 +6,9 @@ class Weapon(object):
     def __init__(self, range, damage, owner):
         """
 
-        :type owner: Player
-        :type damage: int
         :type range: int
+        :type damage: int
+        :type owner: Player
         """
         self.range = range
         self.effect = damage
@@ -20,10 +20,10 @@ class Weapon(object):
         :type posY: int
         :type posX: int
         """
-        return
+        return None
 
     def enhance(self):
-        return
+        return None
 
     def getEffect(self):
         """
@@ -182,8 +182,8 @@ class Player(object):
         self.index = index
         self.game = game
 
-        self.myString = None
-        self.equipment = None
+        self.myString = None  # type: str
+        self.equipment = None  # type: Weapon
 
     def getPos(self):
         """
@@ -221,7 +221,7 @@ class Player(object):
     def getName(self):
         """
 
-        :rtype: string
+        :rtype: str
         """
         return self.myString
 
@@ -316,11 +316,11 @@ class Human(Player):
         super(Human, self).__init__(100, 4, posX, posY, index, game)
 
         self.myString = 'H' + str(index)
-        self.equipment = Rifle(self)
+        self.equipment = None  # type: Weapon
 
     def teleport(self):
         super(Human, self).teleport()
-        self.equipment.enhance() # duck typing
+        self.equipment.enhance()  # duck typing
 
     def askForMove(self):
         print("You are a human (H{0}) using Rifle. (Range {1}, Ammo #: {2}, Damage per shot: {3})"
@@ -383,7 +383,7 @@ class SurvivalGame(object):
         for i in range(self.__n):
             teleportObject = self.__teleportObjects[i]
 
-            pos = teleportObject.getPos() # duck typing
+            pos = teleportObject.getPos()  # duck typing
             printObject[pos.getX()][pos.getY()] = teleportObject.getName()
 
         for i in range(self.__n, self.__n + self.__O):
@@ -431,7 +431,7 @@ class SurvivalGame(object):
         """
         for teleportObject in self.__teleportObjects:
             if isinstance(teleportObject, Player):
-                pos = teleportObject.getPos() # duck typing
+                pos = teleportObject.getPos()  # duck typing
                 if pos.getX() == x and pos.getY() == y:
                     return teleportObject
 
@@ -460,7 +460,7 @@ class SurvivalGame(object):
         while numOfAlivePlayer > 1:
             if turn == 0:
                 for teleportObject in self.__teleportObjects:
-                    teleportObject.teleport() # duck typing
+                    teleportObject.teleport()  # duck typing
 
                 print('Everyhing gets teleported..')
 
