@@ -26,20 +26,37 @@ class Weapon(object):
         return
 
     def getEffect(self):
+        """
+
+        :rtype: int
+        """
         return self.effect
 
     def getRange(self):
+        """
+
+        :rtype: int
+        """
         return self.range
 
 
 class Axe(Weapon):
     def __init__(self, owner):
+        """
+
+        :type owner: Player
+        """
         self.AXE_RANGE = 1
         self.AXE_INIT_DAMAGE = 40
 
         super(Axe, self).__init__(self.AXE_RANGE, self.AXE_INIT_DAMAGE, owner)
 
     def action(self, posX, posY):
+        """
+
+        :type posX: int
+        :type posY: int
+        """
         print('You are using axe attacking {0} {1}.'.format(str(posX), str(posY)))
 
         if self.owner.pos.distance(xy=(posX, posY)) <= self.range:
@@ -67,6 +84,11 @@ class Rifle(Weapon):
         self.__ammo = self.AMMO_LIMIT
 
     def action(self, posX, posY):
+        """
+
+        :type posX: int
+        :type posY: int
+        """
         print('You are using rifle attacking {0} {1}.'.format(str(posX), str(posY)))
         print('Type how many ammos you want to use.')
 
@@ -74,6 +96,7 @@ class Rifle(Weapon):
 
         if ammoToUse > self.__ammo:
             print('You don\'t have that ammos.')
+            return None
 
         if self.owner.pos.distance(xy=(posX, posY)) <= self.range:
             player = self.owner.game.getPlayer(posX, posY)
@@ -127,9 +150,17 @@ class Pos(object):
         self.__y = y
 
     def getX(self):
+        """
+
+        :rtype: int
+        """
         return self.__x
 
     def getY(self):
+        """
+
+        :rtype: int
+        """
         return self.__y
 
 
@@ -144,16 +175,21 @@ class Player(object):
         :type index: int
         :type game: SurvivalGame
         """
-        self.__MOBILITY = mob
+        self.__mobility = mob
+
         self.health = healthCap
         self.pos = Pos(posX, posY)
         self.index = index
         self.game = game
 
-        self.myString = ''
+        self.myString = None
         self.equipment = None
 
     def getPos(self):
+        """
+
+        :rtype Pos
+        """
         return self.pos
 
     def teleport(self):
@@ -183,6 +219,10 @@ class Player(object):
             self.myString = 'C' + self.myString[0]
 
     def getName(self):
+        """
+
+        :rtype: string
+        """
         return self.myString
 
     def askForMove(self):
@@ -190,7 +230,7 @@ class Player(object):
             str(self.health),
             str(self.pos.getX()),
             str(self.pos.getY()),
-            str(self.__MOBILITY)))
+            str(self.__mobility)))
 
         print('You now have following options: ')
         print('1. Move')
@@ -207,7 +247,7 @@ class Player(object):
             posX = int(posX)
             posY = int(posY)
 
-            if self.pos.distance(xy=(posX, posY)) > self.__MOBILITY:
+            if self.pos.distance(xy=(posX, posY)) > self.__mobility:
                 print('Beyond your reach. Staying still.')
             elif self.game.positionOccupied(posX, posY):
                 print('Position occupied. Cannot move there.')
@@ -239,6 +279,13 @@ class Player(object):
 
 class Chark(Player):
     def __init__(self, posX, posY, index, game):
+        """
+
+        :type posX: int
+        :type posY: int
+        :type index: int
+        :type game: SurvivalGame
+        """
         super(Chark, self).__init__(100, 4, posX, posY, index, game)
 
         self.myString = 'C' + str(index)
@@ -246,7 +293,7 @@ class Chark(Player):
 
     def teleport(self):
         super(Chark, self).teleport()
-        self.equipment.enhance()
+        self.equipment.enhance() # duck typing
 
     def askForMove(self):
         print(
@@ -259,6 +306,13 @@ class Chark(Player):
 
 class Human(Player):
     def __init__(self, posX, posY, index, game):
+        """
+
+        :type posX: int
+        :type posY: int
+        :type index: int
+        :type game: SurvivalGame
+        """
         super(Human, self).__init__(100, 4, posX, posY, index, game)
 
         self.myString = 'H' + str(index)
@@ -266,14 +320,15 @@ class Human(Player):
 
     def teleport(self):
         super(Human, self).teleport()
-        self.equipment.enhance()
+        self.equipment.enhance() # duck typing
 
     def askForMove(self):
         print("You are a human (H{0}) using Rifle. (Range {1}, Ammo #: {2}, Damage per shot: {3})"
               .format(self.index,
                       self.equipment.getRange(),
-                      self.equipment.getAmmo(),
+                      self.equipment.getAmmo(), # duck typing
                       self.equipment.getEffect()))
+
         super(Human, self).askForMove()
 
 
@@ -291,6 +346,10 @@ class Obstacle(object):
         self.game = game
 
     def getPos(self):
+        """
+
+        :rtype: Pos
+        """
         return self.pos
 
     def teleport(self):
@@ -308,8 +367,8 @@ class SurvivalGame(object):
     def __init__(self):
         self.D = 10
 
-        self.__n = None
         self.__O = 2
+        self.__n = None
 
         self.__teleportObjects = []
 
@@ -324,7 +383,7 @@ class SurvivalGame(object):
         for i in range(self.__n):
             teleportObject = self.__teleportObjects[i]
 
-            pos = teleportObject.getPos()
+            pos = teleportObject.getPos() # duck typing
             printObject[pos.getX()][pos.getY()] = teleportObject.getName()
 
         for i in range(self.__n, self.__n + self.__O):
@@ -353,6 +412,10 @@ class SurvivalGame(object):
             sys.stdout.write('\n')
 
     def positionOccupied(self, x, y):
+        """
+
+        :rtype: bool
+        """
         # duck typing
         for teleportObject in self.__teleportObjects:
             pos = teleportObject.getPos()
@@ -362,13 +425,15 @@ class SurvivalGame(object):
         return False
 
     def getPlayer(self, x, y):
-        for teleportObject in self.__teleportObjects:
-            if not isinstance(teleportObject, Player):
-                continue
+        """
 
-            pos = teleportObject.getPos()
-            if pos.getX() == x and pos.getY() == y:
-                return teleportObject
+        :rtype: Player
+        """
+        for teleportObject in self.__teleportObjects:
+            if isinstance(teleportObject, Player):
+                pos = teleportObject.getPos() # duck typing
+                if pos.getX() == x and pos.getY() == y:
+                    return teleportObject
 
         return None
 
@@ -379,9 +444,10 @@ class SurvivalGame(object):
 
         self.__teleportObjects = []
 
-        # need check self.n/2
         for i in range(int(self.__n / 2)):
             self.__teleportObjects.append(Human(0, 0, i, self))
+
+        for i in range(int(self.__n / 2)):
             self.__teleportObjects.append(Chark(0, 0, i, self))
 
         for i in range(int(self.__O)):
@@ -394,7 +460,7 @@ class SurvivalGame(object):
         while numOfAlivePlayer > 1:
             if turn == 0:
                 for teleportObject in self.__teleportObjects:
-                    teleportObject.teleport()
+                    teleportObject.teleport() # duck typing
 
                 print('Everyhing gets teleported..')
 
