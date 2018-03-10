@@ -63,7 +63,10 @@ class Axe(Weapon):
             player = self.owner.game.getPlayer(posX, posY)
 
             if player:
-                player.decreaseHealth(self.effect)
+                if player.getName()[0] != self.owner.getName()[0]:
+                    player.decreaseHealth(self.effect)
+                else:
+                    print('No cannibalism.')
         else:
             print('Out of reach.')
 
@@ -102,8 +105,11 @@ class Rifle(Weapon):
             player = self.owner.game.getPlayer(posX, posY)
 
             if player:
-                player.decreaseHealth(self.effect * ammoToUse)
-                self.__ammo -= ammoToUse
+                if player.getName()[0] != self.owner.getName()[0]:
+                    player.decreaseHealth(self.effect * ammoToUse)
+                    self.__ammo -= ammoToUse
+                else:
+                    print('No cannibalism.')
         else:
             print('Out of reach.')
 
