@@ -313,7 +313,7 @@ class Human(Player):
         :type index: int
         :type game: SurvivalGame
         """
-        super(Human, self).__init__(100, 4, posX, posY, index, game)
+        super(Human, self).__init__(80, 2, posX, posY, index, game)
 
         self.myString = 'H' + str(index)
         self.equipment = None  # type: Weapon
