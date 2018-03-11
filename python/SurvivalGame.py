@@ -3,13 +3,15 @@ import sys
 
 
 class Weapon(object):
-    def __init__(self, range, damage, owner):
+    def __init__(self, name, range, damage, owner):
         """
 
+        :type name: str
         :type range: int
         :type damage: int
         :type owner: Player
         """
+        self.name = name
         self.range = range
         self.effect = damage
         self.owner = owner
@@ -39,6 +41,20 @@ class Weapon(object):
         """
         return self.range
 
+    def getName(self):
+        """
+
+        :rtype: str
+        """
+        return self.name
+
+    def getDetails(self):
+        """
+
+        :rtype: str
+        """
+        return None
+
 
 class Axe(Weapon):
     def __init__(self, owner):
@@ -49,7 +65,7 @@ class Axe(Weapon):
         self.AXE_RANGE = 1
         self.AXE_INIT_DAMAGE = 40
 
-        super(Axe, self).__init__(self.AXE_RANGE, self.AXE_INIT_DAMAGE, owner)
+        super(Axe, self).__init__("Axe", self.AXE_RANGE, self.AXE_INIT_DAMAGE, owner)
 
     def action(self, posX, posY):
         """
@@ -63,7 +79,7 @@ class Axe(Weapon):
             player = self.owner.game.getPlayer(posX, posY)
 
             if player:
-                if player.getName()[0] != self.owner.getName()[0]:
+                if player.getRace() != self.owner.getRace():
                     player.decreaseHealth(self.effect)
                 else:
                     print('No cannibalism.')
@@ -72,6 +88,15 @@ class Axe(Weapon):
 
     def enhance(self):
         self.effect += 10
+
+    def getDetails(self):
+        """
+
+        :rtype: str
+        """
+        return '(Range: {0}, Damage: {1})'.format(
+            self.getRange(),
+            self.getEffect())
 
 
 class Rifle(Weapon):
@@ -82,7 +107,7 @@ class Rifle(Weapon):
         self.AMMO_LIMIT = 6
         self.AMMO_RECHARGE = 3
 
-        super(Rifle, self).__init__(self.RIFLE_RANGE, self.RIFLE_INIT_DAMAGE, owner)
+        super(Rifle, self).__init__("Rifle", self.RIFLE_RANGE, self.RIFLE_INIT_DAMAGE, owner)
 
         self.__ammo = self.AMMO_LIMIT
 
@@ -102,10 +127,10 @@ class Rifle(Weapon):
             return None
 
         if self.owner.pos.distance(xy=(posX, posY)) <= self.range:
-            player = self.owner.game.getPlayer(posX, posY)
+            player = self.owner.game.getPlayer(posX, posY)  # type: Player
 
             if player:
-                if player.getName()[0] != self.owner.getName()[0]:
+                if player.getRace() != self.owner.getRace():
                     player.decreaseHealth(self.effect * ammoToUse)
                     self.__ammo -= ammoToUse
                 else:
@@ -116,8 +141,78 @@ class Rifle(Weapon):
     def enhance(self):
         self.__ammo = min(self.AMMO_LIMIT, self.__ammo + self.AMMO_RECHARGE)
 
+    def getDetails(self):
+        return '(Range {0}, Ammo #: {1}, Damage per shot: {2})'.format(
+            self.getRange(),
+            self.getAmmo(),
+            self.getEffect())
+
     def getAmmo(self):
         return self.__ammo
+
+
+class Wand(object):
+    def __init__(self, owner):
+        """
+
+        :type owner: Player
+        """
+        self.name = "Wand"
+        self.range = 5
+        self.effect = 5
+        self.owner = owner
+
+    def action(self, posX, posY):
+        """
+
+        :type posX: int
+        :type posY: int
+        """
+        print('You are using wand healing {0} {1}.'.format(str(posX), str(posY)))
+
+        if self.owner.pos.distance(xy=(posX, posY)) <= self.range:
+            player = self.owner.game.getPlayer(posX, posY)
+
+            if player:
+                if player.getRace() == self.owner.getRace():
+                    player.increaseHealth(self.effect)
+                else:
+                    print('No other race healing.')
+        else:
+            print('Out of reach.')
+
+    def enhance(self):
+        self.effect += 5
+
+    def getEffect(self):
+        """
+
+        :rtype: int
+        """
+        return self.effect
+
+    def getRange(self):
+        """
+
+        :rtype: int
+        """
+        return self.range
+
+    def getName(self):
+        """
+
+        :rtype: str
+        """
+        return self.name
+
+    def getDetails(self):
+        """
+
+        :rtype: str
+        """
+        return '(Range: {0}, Healing effect: {1})'.format(
+            self.getRange(),
+            self.getEffect())
 
 
 class Pos(object):
@@ -171,7 +266,7 @@ class Pos(object):
 
 
 class Player(object):
-    def __init__(self, healthCap, mob, posX, posY, index, game):
+    def __init__(self, healthCap, mob, posX, posY, index, game, race):
         """
 
         :type healthCap: int
@@ -180,16 +275,19 @@ class Player(object):
         :type posY: int
         :type index: int
         :type game: SurvivalGame
+        :type race: str
         """
-        self.__mobility = mob
+        self.mobility = mob
+        self.race = race
 
         self.health = healthCap
+        self.healthCap = healthCap
         self.pos = Pos(posX, posY)
         self.index = index
         self.game = game
 
-        self.myString = None  # type: str
-        self.equipment = None  # type: Weapon
+        self.myString = race[0] + str(index)  # type: str
+        self.equipment = None
 
     def getPos(self):
         """
@@ -215,14 +313,22 @@ class Player(object):
         """
         self.health += h
 
+        if self.health > self.healthCap:
+            self.health = self.healthCap
+
+        if self.health > 0:
+            self.myString = self.race[0] + str(self.index)
+
     def decreaseHealth(self, h):
         """
 
         :type h: int
         """
         self.health -= h
+
         if self.health <= 0:
-            self.myString = 'C' + self.myString[0]
+            self.myString = 'C' + self.race[0]  # CH CHuman, CC CChark
+            self.health = 0
 
     def getName(self):
         """
@@ -231,16 +337,28 @@ class Player(object):
         """
         return self.myString
 
+    def getRace(self):
+        """
+
+        :rtype: str
+        """
+        return self.race
+
     def askForMove(self):
         print('Your health is {0}. Your position is ({1},{2}). Your mobility is {3}.'.format(
             str(self.health),
             str(self.pos.getX()),
             str(self.pos.getY()),
-            str(self.__mobility)))
+            str(self.mobility)))
 
         print('You now have following options: ')
         print('1. Move')
-        print('2. Attack')
+
+        if self.equipment.getName() == "Wand":
+            print('2. Heal')
+        else:
+            print('2. Attack')
+
         print('3. End the turn')
 
         a = int(raw_input())
@@ -253,7 +371,7 @@ class Player(object):
             posX = int(posX)
             posY = int(posY)
 
-            if self.pos.distance(xy=(posX, posY)) > self.__mobility:
+            if self.pos.distance(xy=(posX, posY)) > self.mobility:
                 print('Beyond your reach. Staying still.')
             elif self.game.positionOccupied(posX, posY):
                 print('Position occupied. Cannot move there.')
@@ -261,10 +379,17 @@ class Player(object):
                 self.pos.setPos(posX, posY)
                 self.game.printBoard()
 
-                print('You can now \n1.attack\n2.End the turn')
+                if self.equipment.getName() == "Wand":
+                    print('You can now \n1.heal\n2.End the turn')
+                else:
+                    print('You can now \n1.attack\n2.End the turn')
+
                 i = int(raw_input())
                 if i == 1:
-                    print('Input position to attack. (Input \'x y\')')
+                    if self.equipment.getName() == "Wand":
+                        print('Input position to heal. (Input \'x y\')')
+                    else:
+                        print('Input position to attack. (Input \'x y\')')
 
                     typedXYStr = raw_input()
                     (attX, attY) = typedXYStr.split()
@@ -292,22 +417,28 @@ class Chark(Player):
         :type index: int
         :type game: SurvivalGame
         """
-        super(Chark, self).__init__(100, 4, posX, posY, index, game)
+        super(Chark, self).__init__(100, 4, posX, posY, index, game, "Chark")
 
-        self.myString = 'C' + str(index)
-        self.equipment = Axe(self)
+        self.equipment = None  # type: Weapon
 
     def teleport(self):
         super(Chark, self).teleport()
-        self.equipment.enhance() # duck typing
+        self.equipment.enhance()  # duck typing
 
     def askForMove(self):
         print(
-            "You are a Chark (C{0}) using Axe. (Range: {1}, Damage: {2})".format(
+            "You are a Chark (C{0}) using {1}. {2}".format(
                 self.index,
-                self.equipment.getRange(),
-                self.equipment.getEffect()))
+                self.equipment.getName(),
+                self.equipment.getDetails()))
         super(Chark, self).askForMove()
+
+    def equip(self, equipment):
+        """
+
+        :type equipment: Weapon | Wand
+        """
+        self.equipment = equipment
 
 
 class Human(Player):
@@ -319,9 +450,8 @@ class Human(Player):
         :type index: int
         :type game: SurvivalGame
         """
-        super(Human, self).__init__(80, 2, posX, posY, index, game)
+        super(Human, self).__init__(80, 2, posX, posY, index, game, "Human")
 
-        self.myString = 'H' + str(index)
         self.equipment = None  # type: Weapon
 
     def teleport(self):
@@ -329,13 +459,19 @@ class Human(Player):
         self.equipment.enhance()  # duck typing
 
     def askForMove(self):
-        print("You are a human (H{0}) using Rifle. (Range {1}, Ammo #: {2}, Damage per shot: {3})"
+        print("You are a human (H{0}) using {1}. {2}"
               .format(self.index,
-                      self.equipment.getRange(),
-                      self.equipment.getAmmo(), # duck typing
-                      self.equipment.getEffect()))
+                      self.equipment.getName(),
+                      self.equipment.getDetails()))
 
         super(Human, self).askForMove()
+
+    def equip(self, equipment):
+        """
+
+        :type equipment: Weapon | Wand
+        """
+        self.equipment = equipment
 
 
 class Obstacle(object):
@@ -450,11 +586,27 @@ class SurvivalGame(object):
 
         self.__teleportObjects = []
 
-        for i in range(int(self.__n / 2)):
-            self.__teleportObjects.append(Human(0, 0, i, self))
+        numOfHumans = int(self.__n / 2)
+        for i in range(numOfHumans):
+            human = Human(0, 0, i, self)
 
-        for i in range(int(self.__n / 2)):
-            self.__teleportObjects.append(Chark(0, 0, i, self))
+            if i == numOfHumans - 1:
+                human.equip(Wand(human))
+            else:
+                human.equip(Rifle(human))
+
+            self.__teleportObjects.append(human)
+
+        numOfCharks = int(self.__n / 2)
+        for i in range(numOfCharks):
+            chark = Chark(0, 0, i, self)
+
+            if i == numOfHumans - 1:
+                chark.equip(Wand(chark))
+            else:
+                chark.equip(Axe(chark))
+
+            self.__teleportObjects.append(chark)
 
         for i in range(int(self.__O)):
             self.__teleportObjects.append(Obstacle(0, 0, i, self))
