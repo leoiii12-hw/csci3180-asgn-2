@@ -103,7 +103,6 @@ class Rifle(Weapon):
     def __init__(self, owner):
         self.RIFLE_RANGE = 4
         self.RIFLE_INIT_DAMAGE = 10
-
         self.AMMO_LIMIT = 6
         self.AMMO_RECHARGE = 3
 
@@ -277,16 +276,16 @@ class Player(object):
         :type game: SurvivalGame
         :type race: str
         """
-        self.mobility = mob
-        self.race = race
+        self.MOBILITY = mob
+        self.RACE = race
+        self.HEALTH_CAPACITY = healthCap
 
         self.health = healthCap
-        self.healthCap = healthCap
         self.pos = Pos(posX, posY)
         self.index = index
         self.game = game
 
-        self.myString = race[0] + str(index)  # type: str
+        self.myString = self.RACE[0] + str(index)  # type: str
         self.equipment = None
 
     def getPos(self):
@@ -306,6 +305,13 @@ class Player(object):
 
         self.pos.setPos(randX, randY)
 
+    def equip(self, equipment):
+        """
+
+        :type equipment: Weapon | Wand
+        """
+        self.equipment = equipment
+
     def increaseHealth(self, h):
         """
 
@@ -313,11 +319,11 @@ class Player(object):
         """
         self.health += h
 
-        if self.health > self.healthCap:
-            self.health = self.healthCap
+        if self.health > self.HEALTH_CAPACITY:
+            self.health = self.HEALTH_CAPACITY
 
         if self.health > 0:
-            self.myString = self.race[0] + str(self.index)
+            self.myString = self.RACE[0] + str(self.index)
 
     def decreaseHealth(self, h):
         """
@@ -327,7 +333,7 @@ class Player(object):
         self.health -= h
 
         if self.health <= 0:
-            self.myString = 'C' + self.race[0]  # CH CHuman, CC CChark
+            self.myString = 'C' + self.RACE[0]  # CH CHuman, CC CChark
             self.health = 0
 
     def getName(self):
@@ -342,14 +348,14 @@ class Player(object):
 
         :rtype: str
         """
-        return self.race
+        return self.RACE
 
     def askForMove(self):
         print('Your health is {0}. Your position is ({1},{2}). Your mobility is {3}.'.format(
             str(self.health),
             str(self.pos.getX()),
             str(self.pos.getY()),
-            str(self.mobility)))
+            str(self.MOBILITY)))
 
         print('You now have following options: ')
         print('1. Move')
@@ -371,7 +377,7 @@ class Player(object):
             posX = int(posX)
             posY = int(posY)
 
-            if self.pos.distance(xy=(posX, posY)) > self.mobility:
+            if self.pos.distance(xy=(posX, posY)) > self.MOBILITY:
                 print('Beyond your reach. Staying still.')
             elif self.game.positionOccupied(posX, posY):
                 print('Position occupied. Cannot move there.')
@@ -433,13 +439,6 @@ class Chark(Player):
                 self.equipment.getDetails()))
         super(Chark, self).askForMove()
 
-    def equip(self, equipment):
-        """
-
-        :type equipment: Weapon | Wand
-        """
-        self.equipment = equipment
-
 
 class Human(Player):
     def __init__(self, posX, posY, index, game):
@@ -465,13 +464,6 @@ class Human(Player):
                       self.equipment.getDetails()))
 
         super(Human, self).askForMove()
-
-    def equip(self, equipment):
-        """
-
-        :type equipment: Weapon | Wand
-        """
-        self.equipment = equipment
 
 
 class Obstacle(object):
